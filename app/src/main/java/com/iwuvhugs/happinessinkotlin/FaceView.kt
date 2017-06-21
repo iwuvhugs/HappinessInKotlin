@@ -9,6 +9,8 @@ import android.support.v4.view.MotionEventCompat
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import android.os.Parcel
+import android.os.Parcelable
 
 class FaceView : View {
 
@@ -40,6 +42,19 @@ class FaceView : View {
 
     override fun onDraw(canvas: Canvas) {
         faceDrawer.drawFace(canvas)
+    }
+
+    override fun onSaveInstanceState(): Parcelable {
+        val parcelable = super.onSaveInstanceState()
+        val faceState = FaceState(parcelable)
+        faceState.state = happiness
+        return faceState
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable) {
+        val faceState = state as FaceState
+        super.onRestoreInstanceState(faceState.superState)
+        setHappiness(faceState.state)
     }
 
     fun setHappiness(happiness: Float) {
@@ -131,6 +146,33 @@ class FaceView : View {
                     mouthWidth / 3, mouthVerticalOffset + smileHeight,
                     mouthWidth / 2, mouthVerticalOffset)
             canvas.drawPath(path, paint)
+        }
+    }
+
+    internal class FaceState : BaseSavedState {
+
+        internal var state = 0f
+
+        constructor(superState: Parcelable) : super(superState)
+        constructor(source: Parcel) : super(source) {
+            state = source.readFloat()
+        }
+
+        override fun writeToParcel(out: Parcel, flags: Int) {
+            super.writeToParcel(out, flags)
+            out.writeFloat(state)
+        }
+
+        companion object {
+            val CREATOR = object : Parcelable.Creator<FaceState> {
+                override fun createFromParcel(source: Parcel): FaceState {
+                    return FaceState(source)
+                }
+
+                override fun newArray(size: Int): Array<FaceState> {
+                    return newArray(size)
+                }
+            }
         }
     }
 }
